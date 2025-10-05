@@ -11,7 +11,8 @@ This bot automatically cleans up service messages in Telegram groups. It deletes
 ## What kind of messages does the bot delete?
 - User join/leave notifications
 - Group setting changes
-- Message edit notifications
+- Group name changes
+- Group photo changes
 - And other service messages
 
 ## Need help?
