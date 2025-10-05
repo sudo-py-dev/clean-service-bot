@@ -53,10 +53,5 @@ Found a bug? You can:
    python index.py
    ```
 
-## How does the code work?
-- The code is organized into directories by functionality
-- Uses `tools/logger.py` for logging
-- Important to write tests for each new feature
-
 ## License
 Available under the MIT License - see the [LICENSE](LICENSE) file for details
