@@ -1,0 +1,55 @@
+{
+    "he": {
+        "unauthorized_admin": "🚫 חסרה לך הרשאת {} בצ'אט זה",
+        "reload_admins": "רענון הרשאות מנהלים בוצע בהצלחה",
+        "reload_admins_failed": "רענון הרשאות מנהלים נכשל ניתן לרענן פעם בשעתיים",
+        "join_button": "הוסף אותי לקבוצה +",
+        "user_not_found": "🔍 המשתמש לא נמצא",
+        "register": "אוקיי הקבוצה עודכנה בהצלחה",
+        "start": "👋 ברוך הבא לבוט ניקוי הודעות שירות 🧹\nשלח /help כדי לראות את כל הפקודות הזמינות ✨",
+        "commands": {
+            "start": "הפעל את הבוט",
+            "help": "תפריט עזרה",
+            "lang": "שינוי שפה"
+        },
+        "help": "🆘 תפריט עזרה\n{}",
+        "select_language": "🌐 <b>בחירת שפה</b>\nבחר את השפה הרצויה להפעלת הבוט.\n\n<i>Select your preferred language below.</i>",
+        "language_selected": "✅ <b>השפה שנבחרה היא</b> {}",
+        "language_not_supported": "⚠️ השפה {} אינה נתמכת",
+        "adminonly": "פקודה רק למנהל"
+    },
+    "en": {
+        "unauthorized_admin": "🚫 You don’t have permission to {} this chat",
+        "join_button": "Add me to the group +",
+        "user_not_found": "🔍 User not found",
+        "register": "Ok, the group has been updated successfully",
+        "start": "👋 Welcome to the Service Message Cleaning Bot 🧹\nSend /help to see all available commands ✨",
+        "commands": {
+            "start": "Start the bot",
+            "help": "Show this help message",
+            "lang": "Change the language"
+        },
+        "help": "🆘 Help Menu\n {}",
+        "select_language": "🌐 Please select your preferred language",
+        "language_selected": "✅ The selected language is {}",
+        "language_not_supported": "⚠️ The language {} is not supported",
+        "adminonly": "Command for admins only"
+    },
+    "fr": {
+        "unauthorized_admin": "🚫 Vous n'avez pas la permission de {} ce chat",
+        "join_button": "Ajoutez-moi au groupe +",
+        "user_not_found": "🔍 Utilisateur non trouvé",
+        "register": "Ok, le groupe a été mis à jour avec succès",
+        "start": "👋 Bienvenue sur le bot de nettoyage des messages de service 🧹\nEnvoyez /help pour voir toutes les commandes disponibles ✨",
+        "commands": {
+            "start": "Démarrer le bot",
+            "help": "Afficher ce message d'aide",
+            "lang": "Changer la langue"
+        },
+        "help": "🆘 Menu d'aide\n {}",
+        "select_language": "🌐 Veuillez sélectionner votre langue préférée",
+        "language_selected": "✅ La langue sélectionnée est {}",
+        "language_not_supported": "⚠️ La langue {} n'est pas supportée",
+        "adminonly": "Commande pour les administrateurs seulement"
+    }
+}

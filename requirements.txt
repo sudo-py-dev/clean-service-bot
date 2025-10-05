@@ -1,0 +1,5 @@
+pyrotgfork
+python-dotenv
+sqlalchemy
+tgcrypto
+tzdata
