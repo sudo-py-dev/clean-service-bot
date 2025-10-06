@@ -4,7 +4,7 @@ from pyrogram import Client
 from pyrogram.types import Message
 from pyrogram.handlers import MessageHandler
 from pyrogram import filters
-from tools.tools import get_user_preferred_language, is_admin_message_or_callback
+from tools.tools import get_user_preferred_language, is_admin_message_or_callback, group_settings
 from tools.database import Chats, AdminsPermissions
 
 @get_user_preferred_language()
@@ -16,7 +16,7 @@ async def start_handler(client: Client, message: Message, language: str):
 @get_user_preferred_language()
 async def help_handler(_, message: Message, language: str):
     commands = Messages(language=language).commands
-    commands_str = "\n".join([f"/{command} - {description}" for command, description in commands.items()])
+    commands_str = "\n".join([f"<code>/{command}</code> - {description}" for command, description in commands.items()])
     await message.reply(Messages(language=language).help.format(commands_str))
 
 
@@ -26,17 +26,19 @@ async def change_language_handler(_, message: Message, language: str):
 
 
 @is_admin_message_or_callback()
-async def register_handler(_, message: Message):
+@group_settings(is_bot_admin=False)
+async def register_handler(_, message: Message, settings: Chats):
     Chats.register(message.chat.id, message.chat.type, message.chat.title, True)
-    await message.reply(Messages(language="he").register)
+    await message.reply(Messages(language=settings.language).register)
 
 
 @is_admin_message_or_callback()
-async def reload_admins_handler(_, message: Message):
+@group_settings(is_bot_admin=False)
+async def reload_admins_handler(_, message: Message, settings: dict):
     if AdminsPermissions.reload(message.chat.id):
-        await message.reply(Messages(language="he").reload_admins)
+        await message.reply(Messages(language=settings.get("language")).reload_admins)
     else:
-        await message.reply(Messages(language="he").reload_admins_failed)
+        await message.reply(Messages(language=settings.get("language")).reload_admins_failed)
 
 # Add more commands handlers here
 

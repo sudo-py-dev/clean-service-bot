@@ -10,9 +10,11 @@
         "commands": {
             "start": "הפעל את הבוט",
             "help": "תפריט עזרה",
-            "lang": "שינוי שפה"
+            "lang": "שינוי שפה",
+            "reload": "רענון מנהלים - עובד רק בקבוצה",
+            "register": "אם הבוט לא מוחק הודעות שירות יש לשלוח את הפקודה בקבוצה"
         },
-        "help": "🆘 תפריט עזרה\n{}",
+        "help": "<b>תפריט עזרה 🆘</b>\n\n{}",
         "select_language": "🌐 <b>בחירת שפה</b>\nבחר את השפה הרצויה להפעלת הבוט.\n\n<i>Select your preferred language below.</i>",
         "language_selected": "✅ <b>השפה שנבחרה היא</b> {}",
         "language_not_supported": "⚠️ השפה {} אינה נתמכת",
@@ -27,7 +29,9 @@
         "commands": {
             "start": "Start the bot",
             "help": "Show this help message",
-            "lang": "Change the language"
+            "lang": "Change the language",
+            "reload": "Reload admins permissions - works only in group",
+            "register": "If the bot is not deleting service messages, send the command in the group"
         },
         "help": "🆘 Help Menu\n {}",
         "select_language": "🌐 Please select your preferred language",
@@ -44,7 +48,9 @@
         "commands": {
             "start": "Démarrer le bot",
             "help": "Afficher ce message d'aide",
-            "lang": "Changer la langue"
+            "lang": "Changer la langue",
+            "reload": "Recharger les permissions des admins - fonctionne seulement dans le groupe",
+            "register": "Si le bot ne supprime pas les messages de service, envoyez la commande dans le groupe"
         },
         "help": "🆘 Menu d'aide\n {}",
         "select_language": "🌐 Veuillez sélectionner votre langue préférée",

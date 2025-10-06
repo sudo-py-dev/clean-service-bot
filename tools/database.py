@@ -25,7 +25,7 @@ Session = sessionmaker(bind=engine)
 class Chats(Base):
     __tablename__ = 'chats'
     chat_id = Column(Integer, primary_key=True, index=True, unique=True)
-    language = Column(String, nullable=True)
+    language = Column(String, default="he")
     chat_type = Column(String, nullable=True)
     chat_title = Column(String, nullable=True)
     bot_is_admin = Column(Boolean, nullable=True)
@@ -57,7 +57,7 @@ class Chats(Base):
             for key, value in kwargs.items():
                 setattr(chat, key, value)
             session.commit()
-            return True
+            return chat
     
     @staticmethod
     def delete(chat_id: int) -> bool:
@@ -73,7 +73,7 @@ class Chats(Base):
     def get(chat_id: int):
         with Session() as session:
             chat = session.query(Chats).filter_by(chat_id=chat_id).first()
-            return chat
+            return chat.__dict__
     
     @staticmethod
     def is_exists(chat_id: int) -> bool:
@@ -185,7 +185,7 @@ class AdminsPermissions(Base):
             try:
                 chat = session.query(Chats).filter_by(chat_id=chat_id).first()
                 if chat is None:
-                    Chats.create(chat_id, "", "")
+                    Chats.create(chat_id, "", "", True)
                     return AccessPermission.NEED_UPDATE
                 
                 if not chat.last_admins_update or chat.last_admins_update < datetime.now() - timedelta(hours=2):

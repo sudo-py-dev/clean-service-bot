@@ -3,11 +3,11 @@ from pyrogram.handlers import MessageHandler
 from pyrogram import filters
 from pyrogram.errors import MessageDeleteForbidden
 from tools.database import Chats
-from tools.tools import is_bot_admin
+from tools.tools import group_settings
 
 
-@is_bot_admin
-async def clean_service_messages(_, message: Message):
+@group_settings(is_bot_admin=True)
+async def clean_service_messages(_, message: Message, __: Chats):
     try:
         if message.service:
             await message.delete()

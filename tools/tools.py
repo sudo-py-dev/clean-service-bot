@@ -138,9 +138,10 @@ def get_user_preferred_language():
     return function
 
 
-def is_bot_admin(func):
-    @wraps(func)
-    async def wrapper(client: Client, msg_or_cq: [Message, CallbackQuery]):
+def group_settings(is_bot_admin: bool = True):
+    def function(func):
+        @wraps(func)
+        async def wrapper(client: Client, msg_or_cq: [Message, CallbackQuery]):
             if isinstance(msg_or_cq, CallbackQuery):
                 message = msg_or_cq.message
             elif not isinstance(msg_or_cq, Message):
@@ -149,8 +150,19 @@ def is_bot_admin(func):
             if message.chat.type not in [ChatType.SUPERGROUP, ChatType.GROUP]:
                 logger.warning("Use this wrapper only in groups")
                 return
-            is_admin = Chats.get(chat_id=message.chat.id).bot_is_admin
-            if not is_admin:
-                return
-            return await func(client, msg_or_cq)
-    return wrapper
+            settings = Chats.get(chat_id=message.chat.id)
+            if not settings:
+                Chats.create(chat_id=message.chat.id, chat_type=message.chat.type.value, chat_title=message.chat.title, bot_is_admin=True)
+                settings = Chats.get(chat_id=message.chat.id)
+            elif not settings.get("chat_type") or not settings.get("chat_title"):
+                Chats.update(chat_id=message.chat.id, chat_type=message.chat.type.value, chat_title=message.chat.title)
+                settings = Chats.get(chat_id=message.chat.id)
+            if not is_bot_admin:
+                    return await func(client, msg_or_cq, settings)
+            if is_bot_admin and settings.get("bot_is_admin"):
+                return await func(client, msg_or_cq, settings)
+            return
+        return wrapper
+    return function
+
+
