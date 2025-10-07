@@ -2,11 +2,13 @@ from enum import Enum
 import json
 import os
 
-if os.path.exists("tools/messages.json"):
-    with open("tools/messages.json", "r") as f:
+
+if os.path.exists("locales/messages.json"):
+    with open("locales/messages.json", "r") as f:
         messages = json.load(f)
 else:
     messages = {}
+
 
 class AccessPermission(Enum):
     """Enum for access permission."""
@@ -20,6 +22,7 @@ class AccessPermission(Enum):
     """Chat is not found."""
     NEED_UPDATE = 5
     """Chat needs update."""
+
 
 chat_privileges_meaning = {
     "can_manage_chat": "ניהול צ'אט ✨",
@@ -38,6 +41,7 @@ chat_privileges_meaning = {
     "can_manage_topics": "ניהול נושאים 📋",
     "is_anonymous": "אנונימי 🕶️"
 }
+
 
 class Messages:
     def __init__(self, language: str="he"):
@@ -69,6 +73,7 @@ class Messages:
     def supported_languages(self):
         """Return a list of all available language codes."""
         return list(self.messages.keys())
+
 
 language_display_names = {
         "he": "עברית 🇮🇱",

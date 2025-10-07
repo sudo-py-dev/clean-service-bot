@@ -6,6 +6,7 @@ from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import sessionmaker, relationship
 from typing import Any
 from dotenv import load_dotenv
+import time
 from .enums import AccessPermission
 
 load_dotenv()
@@ -25,28 +26,28 @@ Session = sessionmaker(bind=engine)
 class Chats(Base):
     __tablename__ = 'chats'
     chat_id = Column(Integer, primary_key=True, index=True, unique=True)
-    language = Column(String, default="he")
+    language = Column(String, nullable=True)
     chat_type = Column(String, nullable=True)
     chat_title = Column(String, nullable=True)
-    bot_is_admin = Column(Boolean, nullable=True)
+    is_active = Column(Boolean, default=True)
+    language = Column(String, nullable=True)
 
     # Control update of admins permissions
     last_admins_update = Column(DateTime, nullable=True)
-    last_reloaded_admins = Column(DateTime, nullable=True)
-    
+
     # Relationship with AdminsPermissions
     admins_permissions = relationship("AdminsPermissions", back_populates="chat", cascade="all, delete-orphan")
 
     @staticmethod
-    def create(chat_id: int, chat_type: str, chat_title: str, bot_is_admin: bool) -> bool:
+    def create(chat_id: int, chat_type: str, chat_title: str, is_active: bool = True) -> dict:
         with Session() as session:
             chat = session.query(Chats).filter_by(chat_id=chat_id).first()
             if chat is None:
-                chat = Chats(chat_id=chat_id, chat_type=chat_type, chat_title=chat_title, bot_is_admin=bot_is_admin)
+                chat = Chats(chat_id=chat_id, chat_type=chat_type, chat_title=chat_title, is_active=is_active)
                 session.add(chat)
                 session.commit()
-                return True
-            return False
+                return chat.__dict__
+            return chat.__dict__
     
     @staticmethod
     def update(chat_id: int, **kwargs) -> bool:
@@ -57,7 +58,7 @@ class Chats(Base):
             for key, value in kwargs.items():
                 setattr(chat, key, value)
             session.commit()
-            return chat
+            return True
     
     @staticmethod
     def delete(chat_id: int) -> bool:
@@ -70,27 +71,36 @@ class Chats(Base):
             return True
     
     @staticmethod
-    def get(chat_id: int):
-        with Session() as session:
-            chat = session.query(Chats).filter_by(chat_id=chat_id).first()
-            return chat.__dict__
-    
-    @staticmethod
-    def is_exists(chat_id: int) -> bool:
-        with Session() as session:
-            chat = session.query(Chats).filter_by(chat_id=chat_id).first()
-            return chat is not None
-    
-    @staticmethod
-    def register(chat_id: int, chat_type: str, chat_title: str, bot_is_admin: bool):
+    def get(chat_id: int) -> dict | bool:
         with Session() as session:
             chat = session.query(Chats).filter_by(chat_id=chat_id).first()
             if chat is None:
-                chat = Chats(chat_id=chat_id, chat_type=chat_type, chat_title=chat_title, bot_is_admin=bot_is_admin)
+                return False
+            return chat.__dict__
+    
+    @staticmethod
+    def chat_status_change(chat_id: int, chat_type: str, chat_title: str, is_active: bool) -> bool:
+        with Session() as session:
+            chat = session.query(Chats).filter_by(chat_id=chat_id).first()
+            if chat is None:
+                chat = Chats(chat_id=chat_id, chat_type=chat_type, chat_title=chat_title, is_active=is_active)
                 session.add(chat)
-                session.commit()
-                return True
-            return False
+            else:
+                chat.is_active = is_active
+                chat.chat_type = chat_type
+                chat.chat_title = chat_title
+            session.commit()
+            return True
+    
+    @staticmethod
+    def count() -> int:
+        with Session() as session:
+            return session.query(Chats).count()
+    
+    @staticmethod
+    def count_by(**kwargs) -> int:
+        with Session() as session:
+            return session.query(Chats).filter_by(**kwargs).count()
 
 
 class AdminsPermissions(Base):
@@ -185,17 +195,17 @@ class AdminsPermissions(Base):
             try:
                 chat = session.query(Chats).filter_by(chat_id=chat_id).first()
                 if chat is None:
-                    Chats.create(chat_id, "", "", True)
+                    Chats.create(chat_id, "", "")
                     return AccessPermission.NEED_UPDATE
-                
+
                 if not chat.last_admins_update or chat.last_admins_update < datetime.now() - timedelta(hours=2):
                     return AccessPermission.NEED_UPDATE
-                    
+
                 admin = session.query(cls).filter_by(
                     chat_id=chat_id, 
                     admin_id=admin_id
                 ).first()
-                
+
                 if admin is None:
                     return AccessPermission.NOT_ADMIN
                 if not hasattr(admin, permission):
@@ -204,31 +214,13 @@ class AdminsPermissions(Base):
             except Exception as e:
                 logger.error(f"Error in is_admin for chat {chat_id}, admin {admin_id}: {e}")
                 return AccessPermission.DENY
-    
-    @classmethod
-    def reload(cls, chat_id: int) -> bool:
-        """Reload admin permissions for a chat."""
-        with Session() as session:
-            try:
-                chat = session.query(Chats).filter_by(chat_id=chat_id).first()
-                if chat is None:
-                    return False
-                elif chat.last_reloaded_admins and chat.last_reloaded_admins > datetime.now() - timedelta(hours=2):
-                    return False
-                chat.last_admins_update = datetime.now() + timedelta(hours=2)
-                chat.last_reloaded_admins = datetime.now()
-                session.commit()
-                return True
-            except Exception as e:
-                session.rollback()
-                logger.error(f"Error reloading admin permissions: {e}")
-                return False
 
     @classmethod
     def clear(cls, chat_id: int) -> bool:
         """Clear all admin permissions for a chat."""
         with Session() as session:
             try:
+                session.begin()
                 chat = session.query(Chats).filter_by(chat_id=chat_id).first()
                 if chat is None:
                     return False
@@ -264,29 +256,29 @@ class Users(Base):
     username = Column(String, nullable=True)
     full_name = Column(String, nullable=True)
     language = Column(String, nullable=True)
-    is_contact = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     # Add more columns as needed
 
     @staticmethod
-    def create(user_id: int, username: str=None, full_name: str=None, language: str=None, is_contact: bool=True) -> bool:
+    def create(user_id: int, username: str=None, full_name: str=None, language: str=None, is_active: bool=True) -> bool:
         with Session() as session:
             user = session.query(Users).filter_by(user_id=user_id).first()
             if user is None:
-                user = Users(user_id=user_id, username=username, full_name=full_name, language=language, is_contact=is_contact)
+                user = Users(user_id=user_id, username=username, full_name=full_name, language=language, is_active=is_active)
                 session.add(user)
                 session.commit()
                 return True
             return False
     
     @staticmethod
-    def get(user_id: int):
+    def get(user_id: int) -> dict | None:
         with Session() as session:
             user = session.query(Users).filter_by(user_id=user_id).first()
             if user is None:
-                return None
-            return user
+                return False
+            return user.__dict__
 
     
     @staticmethod
@@ -328,6 +320,110 @@ class Users(Base):
         with Session() as session:
             users = session.query(Users).filter_by(**kwargs).all()
             return users
+    
+    @staticmethod
+    def count() -> int:
+        with Session() as session:
+            return session.query(Users).count() or 0
+    
+    @staticmethod
+    def count_by(**kwargs) -> int:
+        with Session() as session:
+            return session.query(Users).filter_by(**kwargs).count() or 0
+
+class BotSettings(Base):
+    __tablename__ = 'bot_settings'
+    
+    # Primary key (always 1 for the single settings record)
+    id = Column(Integer, primary_key=True, default=1, autoincrement=False)
+    
+    # Bot settings
+    can_join_group = Column(Boolean, default=True, nullable=False)
+    can_join_channel = Column(Boolean, default=True, nullable=False)
+    owner_id = Column(Integer, nullable=True)
+    
+    # Timestamps
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    
+    # Cache for settings
+    _instance = None
+    _last_fetch = 0
+    CACHE_TTL = 60 * 60 * 24  # Cache for 24 hours
+    
+    @classmethod
+    def _get_cached_settings(cls) -> 'BotSettings':
+        """Get settings from cache if valid, otherwise None"""
+        current_time = time.time()
+        if (cls._instance is not None and 
+            current_time - cls._last_fetch < cls.CACHE_TTL):
+            return cls._instance
+        return None
+
+    @classmethod
+    def _update_cache(cls, settings: 'BotSettings'):
+        """Update the cache with new settings"""
+        cls._instance = settings
+        cls._last_fetch = time.time()
+
+    @classmethod
+    def get_settings(cls, force_refresh: bool = False) -> 'BotSettings':
+        """Get the single settings record, using cache if available"""
+        # Try to get from cache first
+        if not force_refresh:
+            cached = cls._get_cached_settings()
+            if cached:
+                return cached
+
+        # If not in cache or force refresh, get from DB
+        with Session() as session:
+            settings = session.query(cls).first()
+            if not settings:
+                settings = cls()
+                session.add(settings)
+                session.commit()
+                session.refresh(settings)
+            
+            # Update cache
+            cls._update_cache(settings)
+            return settings
+
+    @classmethod
+    def update_settings(cls, **kwargs) -> 'BotSettings':
+        """Update settings with the provided values"""
+        with Session() as session:
+            settings = session.query(cls).first()
+            if not settings:
+                settings = cls()
+                session.add(settings)
+            
+            for key, value in kwargs.items():
+                if hasattr(settings, key):
+                    setattr(settings, key, value)
+            
+            session.commit()
+            session.refresh(settings)
+            # Update cache
+            cls._update_cache(settings)
+            return settings
+
+    @classmethod
+    def switch_settings(cls, key: str) -> 'BotSettings':
+        """Switch the value of a setting"""
+        with Session() as session:
+            settings = session.query(cls).first()
+            if not settings:
+                settings = cls()
+                session.add(settings)
+            
+            if hasattr(settings, key):
+                setattr(settings, key, not getattr(settings, key))
+            
+            session.commit()
+            session.refresh(settings)
+            # Update cache
+            cls._update_cache(settings)
+            return settings
 
 
 Base.metadata.create_all(engine)

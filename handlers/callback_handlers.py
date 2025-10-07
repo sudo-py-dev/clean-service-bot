@@ -20,7 +20,7 @@ async def select_language_handler(_, callback_query: CallbackQuery):
         Users.create(user_id=user_id, full_name=full_name, username=username, language=language)
     else:
         Users.update(user_id=user_id, language=language)
-    await callback_query.edit_message_text(Messages(language=language).language_selected.format(language_display_names.get(language)))
+    await callback_query.edit_message_text(Messages(language=language).language_set.format(language_display_names.get(language)))
 
 
 # Add more callback query handlers here

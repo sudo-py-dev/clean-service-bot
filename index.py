@@ -2,10 +2,15 @@ from tools.logger import logger
 from pyrogram import Client
 from dotenv import load_dotenv
 import os
-from handlers.commands import commands_handlers
-from handlers.callback_functions import callback_query_handlers
-from handlers.message_handler import message_handlers
-from handlers.join_handler import join_handlers
+from handlers.command_handlers import commands_handlers
+from handlers.callback_handlers import callback_query_handlers
+from handlers.join_handlers import join_handlers
+from handlers.message_handlers import message_handlers
+from bot_management.bot_settings import bot_handlers
+from bot_management.callback_handlers import bot_settings_callback_handlers
+from bot_management.setup import setup_bot_owner
+
+
 load_dotenv()
 
 
@@ -28,14 +33,24 @@ for handler in commands_handlers:
 for handler in callback_query_handlers:
     app.add_handler(handler)
 
-# Message handler
-for handler in message_handlers:
+# Owner handlers
+for handler in bot_handlers:
     app.add_handler(handler)
 
-# Join handler
+# Owner panel callback handlers
+for handler in bot_settings_callback_handlers:
+    app.add_handler(handler)
+
+# Join handlers
 for handler in join_handlers:
     app.add_handler(handler)
 
+# Message Hanlers
+for handler in message_handlers:
+    app.add_handler(handler)
+
+# Initialize bot settings
+setup_bot_owner()
 
 # Run the bot
 logger.info("Bot started successfully")
