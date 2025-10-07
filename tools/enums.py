@@ -9,6 +9,12 @@ if os.path.exists("locales/messages.json"):
 else:
     messages = {}
 
+if os.path.exists("locales/privileges.json"):
+    with open("locales/privileges.json", "r") as f:
+        privileges = json.load(f)
+else:
+    privileges = {}
+
 
 class AccessPermission(Enum):
     """Enum for access permission."""
@@ -22,25 +28,6 @@ class AccessPermission(Enum):
     """Chat is not found."""
     NEED_UPDATE = 5
     """Chat needs update."""
-
-
-chat_privileges_meaning = {
-    "can_manage_chat": "ניהול צ'אט ✨",
-    "can_delete_messages": "מחיקת הודעות 🗑️",
-    "can_delete_stories": "מחיקת סטורי 📖",
-    "can_manage_video_chats": "ניהול שיחות וידאו 🎥",
-    "can_restrict_members": "הגבלת חברים 🚫",
-    "can_promote_members": "קידום חברים ⬆️",
-    "can_change_info": "שינוי מידע על הקבוצה ℹ️",
-    "can_post_messages": "פרסום הודעות 📝",
-    "can_post_stories": "פירסום סטורי 📚",
-    "can_edit_messages": "עריכת הודעות 📝",
-    "can_edit_stories": "עריכת סטורי 📚",
-    "can_invite_users": "הזמנת משתמשים 💌",
-    "can_pin_messages": "נעיצת הודעות 📌",
-    "can_manage_topics": "ניהול נושאים 📋",
-    "is_anonymous": "אנונימי 🕶️"
-}
 
 
 class Messages:
@@ -81,3 +68,35 @@ language_display_names = {
         "fr": "Français 🇫🇷"
         # Add more languages here if needed
     }
+
+
+class PrivilegesMessages:
+    def __init__(self, language: str="he"):
+        self.language = language
+        self.privileges = dict(privileges)
+
+    def __getattr__(self, name):
+        if self.language and name in self.privileges.get(self.language, {}):
+            return self.privileges[self.language][name]
+        else:
+            # Fallback to English if the message doesn't exist in the current language
+            if name in self.privileges.get("en", {}):
+                return self.privileges["en"][name]
+            else:
+                return f"Privilege '{name}' not found"
+
+    def __setattr__(self, name, value):
+        if name == 'language' or name == 'privileges':
+            super().__setattr__(name, value)
+        else:
+            # Handle dynamic message setting
+            if hasattr(self, 'language') and hasattr(self, 'privileges') and self.language:
+                if self.language in self.privileges and name in self.privileges[self.language]:
+                    self.privileges[self.language][name] = value
+                elif self.language in self.privileges:
+                    self.privileges[self.language][name] = value
+                # Don't set as instance attribute for message keys
+    
+    def exists_privilege(self, privilege: str) -> bool:
+        return privilege in self.privileges.get(self.language, {})
+        

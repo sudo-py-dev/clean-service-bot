@@ -5,7 +5,7 @@ from pyrogram.types import CallbackQuery, Message
 from pyrogram.errors import ChatIdInvalid, ChatAdminRequired, ChannelPrivate, PeerIdInvalid
 from tools.inline_keyboards import select_language_buttons
 from tools.database import Chats, Users, AdminsPermissions, BotSettings
-from tools.enums import Messages, chat_privileges_meaning, AccessPermission
+from tools.enums import Messages, PrivilegesMessages, AccessPermission
 from functools import wraps
 from tools.logger import logger
 from typing import Union
@@ -104,7 +104,7 @@ def is_admin_message(permission_require="can_restrict_members"):
                     return await func(client, message, *args, **kwargs)
                 elif access == AccessPermission.DENY:
                     language = Chats.get(chat_id=chat_id).get("language") or os.getenv("DEFAULT_LANGUAGE") or "he"
-                    miss_permission = chat_privileges_meaning.get(permission_require, permission_require.replace('_', ' '))
+                    miss_permission = PrivilegesMessages(language=language).__getattr__(permission_require)
                     await message.reply(Messages(language=language).unauthorized_admin.format(miss_permission))
                     return
                 return
